@@ -1,57 +1,53 @@
-import React, { useState } from 'react';
-import { Form, Button, Container, Row, Col, Card } from 'react-bootstrap';
-import { Link } from 'react-router-dom'; // Need to import Link here too!
+import { signUp } from "aws-amplify/auth";
+import { useState } from "react";
+import { Form, Button, Container, Row, Col, Card, Alert } from 'react-bootstrap';
+import { Link,useNavigate} from 'react-router-dom';
 
-function RegisterComponent() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState(''); // Added name field for a proper register form
-  const [repeatPassword,setRepeatPassword]=useState('');
-  const [validationError,setValidationError]=useState('');
-  const [errors,setErrors]=useState({});
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
+export default function RegisterComponent() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [repeatPassword, setRepeatPassword] = useState('');
+  const [errors, setErrors] = useState({});
+  const [error, setError] = useState('');
 
-    // Reset previous errors
-    setValidationError('');
-    setErrors({});
+  const navigate = useNavigate();
 
-    let currentErrors={};
-    let formIsValid=true;
+  async function handleRegister(e) {
+    e.preventDefault();
+    setError('');
+    const newErrors = {};
 
-    if(!name.trim()){
-      currentErrors.name=true;
-      formIsValid=false;
-    }
-    if(!email.trim()){
-      currentErrors.email=true;
-      formIsValid=false;
-    }
-    if(!password){
-      currentErrors.password=true;
-      formIsValid=false;
-    }
-    if (password && repeatPassword && password !== repeatPassword) {
-      setValidationError("Error: The two passwords entered do not match.");
-      currentErrors.password = true;
-      currentErrors.repeatPassword = true;
-      formIsValid = false;
-    }
-    if (!formIsValid && !validationError) {
-      setValidationError("Error: Please fill out all required fields.");
-    }
-    setErrors(currentErrors);
-    if (formIsValid) {
-      console.log('Registration successful for:', name, email);
-      setName('');
-      setEmail('');
-      setPassword('');
-      setRepeatPassword('');
-      setValidationError('Registration simulated successfully!');
+    if (!name) newErrors.name = 'Name is required';
+    if (!email) newErrors.email = 'Email is required';
+    if (!password) newErrors.password = 'Password is required';
+    if (password !== repeatPassword) newErrors.repeatPassword = 'Passwords must match';
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
     }
 
-  };
+    try {
+      const out = await signUp({
+        username: email,
+        password,
+        attributes: {
+          email,
+          name,
+        }
+      });
+
+      console.log("Sign-up success:", out);
+      alert("Registration successful! Check your email for verification code.");
+      navigate('/confirm');
+
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
+    }
+  }
 
   return (
     <div className="login-page-wrapper">
@@ -64,77 +60,74 @@ function RegisterComponent() {
                   <h3 className="mt-3">Create Account</h3>
                   <p className="text-muted">Fill out the form below</p>
                 </div>
-                
-                <Form onSubmit={handleSubmit}>
-                   {/* Name Input */}
-                  <Form.Group className="mb-3" controlId="formBasicName">
+
+                {error && <Alert variant="danger">{error}</Alert>}
+
+                <Form onSubmit={handleRegister} noValidate>
+                  <Form.Group className="mb-3" controlId="formName">
                     <Form.Label>Full Name</Form.Label>
                     <Form.Control 
                       type="text" 
                       placeholder="Your Name" 
                       value={name} 
                       onChange={(e) => setName(e.target.value)} 
-                      isInvalid={errors.name}
+                      isInvalid={!!errors.name}
                       required
                     />
                     <Form.Control.Feedback type='invalid'>
-                    Name is required
+                      {errors.name}
                     </Form.Control.Feedback>
                   </Form.Group>
-                  
-                  {/* Email Input */}
-                  <Form.Group className="mb-3" controlId="formBasicEmail">
+
+                  <Form.Group className="mb-3" controlId="formEmail">
                     <Form.Label>Email Address</Form.Label>
                     <Form.Control 
                       type="email" 
                       placeholder="name@example.com" 
                       value={email} 
                       onChange={(e) => setEmail(e.target.value)} 
-                      isInvalid={errors.email}
+                      isInvalid={!!errors.email}
                       required
                     />
                     <Form.Control.Feedback type='invalid'>
-                    Email is required
+                      {errors.email}
                     </Form.Control.Feedback>
                   </Form.Group>
 
-                  {/* Password Input */}
-                  <Form.Group className="mb-3" controlId="formBasicPassword">
+                  <Form.Group className="mb-3" controlId="formPassword">
                     <Form.Label>Password</Form.Label>
                     <Form.Control 
                       type="password" 
                       placeholder="********" 
                       value={password} 
                       onChange={(e) => setPassword(e.target.value)} 
-                      isInvalid={errors.password}
+                      isInvalid={!!errors.password}
                       required
                     />
                     <Form.Control.Feedback type='invalid'>
-                       {errors.password && password !== repeatPassword ? 'Passwords must match.' : 'Password is required.'}
+                      {errors.password}
                     </Form.Control.Feedback>
                   </Form.Group>
 
-                  <Form.Group className="mb-3" controlId="formBasicPassword">
-                    <Form.Label> Repeat Password</Form.Label>
+                  <Form.Group className="mb-3" controlId="formRepeatPassword">
+                    <Form.Label>Repeat Password</Form.Label>
                     <Form.Control 
                       type="password" 
                       placeholder="********" 
                       value={repeatPassword} 
                       onChange={(e) => setRepeatPassword(e.target.value)} 
-                      isInvalid={errors.repeatPassword}
+                      isInvalid={!!errors.repeatPassword}
                       required
                     />
                     <Form.Control.Feedback type='invalid'>
-                       {errors.password && password !== repeatPassword ? 'Passwords must match.' : 'Please confirm your password.'}
+                      {errors.repeatPassword}
                     </Form.Control.Feedback>
                   </Form.Group>
 
-                  {/* Register Button */}
                   <Button variant="success" type="submit" className="w-100 mb-3" size="lg">
                     Register
                   </Button>
 
-                  {/* Login Link: Links back to the home route (/) */}
                   <p className="text-center mt-3 mb-0">
                     Already have an account? 
                     <Link to="/" className="text-decoration-none">
@@ -150,5 +143,3 @@ function RegisterComponent() {
     </div>
   );
 }
-
-export default RegisterComponent;
