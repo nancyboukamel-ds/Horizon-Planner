@@ -4,6 +4,7 @@ import LoginComponent from './interfaces/LoginForm/LoginForm.jsx';
 import RegisterComponent from './interfaces/LoginForm/RegisterForm.jsx';
 import ProtectedRoute from './interfaces/LoginForm/ProtectedRoute';
 import ConfirmSignUp from './interfaces/LoginForm/ConfirmForm.jsx';
+import Dashboard from './interfaces/dashboard/dashboard.jsx';
 import { signOut } from "aws-amplify/auth";
 
 const DashboardComponent = () => (
@@ -23,14 +24,7 @@ function App() {
         <Route path='/' element={<LoginComponent/>} />
         <Route path='/register' element={<RegisterComponent/>} />
         <Route path='/confirm' element={<ConfirmSignUp/>} />
-        <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <DashboardComponent />
-          </ProtectedRoute>
-        }
-      />
+        <Route path="/dashboard" element={<Dashboard/>} />
       </Routes>
     </div>
   );

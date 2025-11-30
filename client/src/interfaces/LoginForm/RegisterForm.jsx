@@ -40,7 +40,6 @@ export default function RegisterComponent() {
       });
 
       console.log("Sign-up success:", out);
-      alert("Registration successful! Check your email for verification code.");
       navigate('/confirm');
 
     } catch (err) {

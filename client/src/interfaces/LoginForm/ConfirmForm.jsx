@@ -21,7 +21,6 @@ export default function ConfirmSignUp() {
       });
 
       setSuccess(true);
-      alert("Account confirmed! You can now log in.");
       navigate("/");
     } catch (err) {
       console.error(err);
